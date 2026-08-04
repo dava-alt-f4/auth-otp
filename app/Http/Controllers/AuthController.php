@@ -20,7 +20,7 @@ class AuthController extends Controller
 
         $cacheKey = 'otp_' . $user->email;
 
-        Cache::put($cacheKey, $otp, now()->addMinutes(1));
+        Cache::put($cacheKey, [Hash::make($otp)], now()->addMinutes(1));
 
         Mail::to($user->email)->send(new SendOtpMail($otp));
     }
