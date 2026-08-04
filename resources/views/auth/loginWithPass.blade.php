@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Register Page</title>
+    <title>Login Page</title>
     <style>
         :root {
             --bg: #f5f5f5;
@@ -117,14 +117,8 @@
 </head>
 <body>
     <div class="auth-container">
-        <h1>Register</h1>
-        <p class="auth-subtitle">Buat akun baru untuk mulai menggunakan layanan.</p>
-
-        <div class="form-group">
-            <label for="nameInput">Name</label>
-            <input type="text" id="nameInput" placeholder="Nama lengkap" required>
-            <p class="error-text" id="nameError"></p>
-        </div>
+        <h1>Login</h1>
+        <p class="auth-subtitle">Masuk menggunakan password Anda.</p>
 
         <div class="form-group">
             <label for="emailInput">Email</label>
@@ -134,20 +128,15 @@
 
         <div class="form-group">
             <label for="passwordInput">Password</label>
-            <input type="password" id="passwordInput" placeholder="Minimal 6 karakter" required>
+            <input type="password" id="passwordInput" placeholder="password" required>
             <p class="error-text" id="passwordError"></p>
         </div>
 
-        <div class="form-group">
-            <label for="confirmPasswordInput">Confirm Password</label>
-            <input type="password" id="confirmPasswordInput" placeholder="Konfirmasi password" required>
-            <p class="error-text" id="confirmPasswordError"></p>
-        </div>
-
-        <button type="button" class="btn-primary" onclick="prosesRegister()">Register</button>
+        <button type="button" class="btn-primary" onclick="prosesLogin()">Login</button>
 
         <div class="auth-footer">
-            Sudah punya akun? <a href="/login">Login di sini</a>
+            Login dengan kode? <a href="/login">Klik di sini</a><br>
+            Belum punya akun? <a href="/register">Daftar di sini</a>
         </div>
     </div>
 
@@ -161,74 +150,53 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         }
 
-        async function prosesRegister() {
-            const nameField = document.getElementById('nameInput');
-            const emailField = document.getElementById('emailInput');
-            const passwordField = document.getElementById('passwordInput');
-            const confirmPasswordField = document.getElementById('confirmPasswordInput');
-            const nameError = document.getElementById('nameError');
+        async function prosesLogin() {
+            const emailInput = document.getElementById('emailInput');
             const emailError = document.getElementById('emailError');
+            const passwordInput = document.getElementById('passwordInput');
             const passwordError = document.getElementById('passwordError');
-            const confirmPasswordError = document.getElementById('confirmPasswordError');
 
-            nameError.textContent = '';
+
             emailError.textContent = '';
             passwordError.textContent = '';
-            confirmPasswordError.textContent = '';
 
-            let isValid = true;
-
-            if (!nameField.value.trim()) {
-                nameError.textContent = 'Nama wajib diisi.';
-                isValid = false;
-            }
-
-            if (!emailField.value.trim()) {
+            if (!emailInput.value.trim()) {
                 emailError.textContent = 'Email wajib diisi.';
-                isValid = false;
-            } else if (!isValidEmail(emailField.value.trim())) {
-                emailError.textContent = 'Format email tidak valid.';
-                isValid = false;
-            }
-
-            if (!passwordField.value) {
-                passwordError.textContent = 'Password wajib diisi.';
-                isValid = false;
-            } else if (passwordField.value.length < 8) {
-                passwordError.textContent = 'Password minimal 8 karakter.';
-                isValid = false;
-            }
-
-            if (!confirmPasswordField.value) {
-                confirmPasswordError.textContent = 'Konfirmasi password wajib diisi.';
-                isValid = false;
-            } else if (passwordField.value !== confirmPasswordField.value) {
-                confirmPasswordError.textContent = 'Password dan konfirmasi password tidak cocok.';
-                isValid = false;
-            }
-
-            if (!isValid) {
                 return;
             }
 
-            const name = document.getElementById('nameInput').value;
+            if (!isValidEmail(emailInput.value.trim())) {
+                emailError.textContent = 'Format email tidak valid.';
+                return;
+            }
+
+            if (!passwordInput.value.trim()) {
+                passwordError.textContent = 'Password wajib diisi.';
+                return;
+            }
+
+            if (passwordInput.value.length < 6) {
+                passwordError.textContent = 'Password minimal 6 karakter.'
+            }
+
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
 
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch('/api/auth/passwordLogin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ name: name, email: email, password: password })
+                body: JSON.stringify({ email: email, password: password })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                alert('Registrasi Berhasil! Silakan login.');
-                window.location.href = '/login';
+                localStorage.setItem('api_token', data.access_token);
+
+                window.location.href = '/dashboard';
             } else {
                 alert('Error: ' + data.message);
             }

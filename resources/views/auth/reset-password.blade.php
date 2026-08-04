@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Register Page</title>
+    <title>Reset Password</title>
     <style>
         :root {
             --bg: #f5f5f5;
@@ -117,71 +117,57 @@
 </head>
 <body>
     <div class="auth-container">
-        <h1>Register</h1>
-        <p class="auth-subtitle">Buat akun baru untuk mulai menggunakan layanan.</p>
+        <h1>Reset Password</h1>
+        <p class="auth-subtitle">Buat password baru untuk akun Anda.</p>
 
-        <div class="form-group">
-            <label for="nameInput">Name</label>
-            <input type="text" id="nameInput" placeholder="Nama lengkap" required>
-            <p class="error-text" id="nameError"></p>
-        </div>
+        <form action="/reset-password" method="POST" id="resetPasswordForm" novalidate>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="email">
+                <p class="error-text" id="emailError"></p>
+            </div>
 
-        <div class="form-group">
-            <label for="emailInput">Email</label>
-            <input type="email" id="emailInput" placeholder="nama@email.com" required>
-            <p class="error-text" id="emailError"></p>
-        </div>
+            <div class="form-group">
+                <label for="password">Password Baru</label>
+                <input type="password" id="password" name="password" placeholder="new password">
+                <p class="error-text" id="passwordError"></p>
+            </div>
 
-        <div class="form-group">
-            <label for="passwordInput">Password</label>
-            <input type="password" id="passwordInput" placeholder="Minimal 6 karakter" required>
-            <p class="error-text" id="passwordError"></p>
-        </div>
+            <div class="form-group">
+                <label for="password_confirmation">Konfirmasi Password</label>
+                <input type="password" id="password_confirmation" name="password_confirmation" placeholder="confirm new password">
+                <p class="error-text" id="passwordConfirmationError"></p>
+            </div>
 
-        <div class="form-group">
-            <label for="confirmPasswordInput">Confirm Password</label>
-            <input type="password" id="confirmPasswordInput" placeholder="Konfirmasi password" required>
-            <p class="error-text" id="confirmPasswordError"></p>
-        </div>
+            <input type="hidden" name="token" value="{{ $token }}">
 
-        <button type="button" class="btn-primary" onclick="prosesRegister()">Register</button>
+            <button type="submit" class="btn-primary">Reset</button>
+        </form>
 
         <div class="auth-footer">
-            Sudah punya akun? <a href="/login">Login di sini</a>
+            <a href="/login">Kembali ke login</a>
         </div>
     </div>
 
     <script>
-        const token = localStorage.getItem('api_token');
-        if (token) {
-            window.location.href = '/dashboard';
-        }
-
         function isValidEmail(value) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         }
 
-        async function prosesRegister() {
-            const nameField = document.getElementById('nameInput');
-            const emailField = document.getElementById('emailInput');
-            const passwordField = document.getElementById('passwordInput');
-            const confirmPasswordField = document.getElementById('confirmPasswordInput');
-            const nameError = document.getElementById('nameError');
+        document.getElementById('resetPasswordForm').addEventListener('submit', function (e) {
+            const emailField = document.getElementById('email');
+            const passwordField = document.getElementById('password');
+            const confirmField = document.getElementById('password_confirmation');
+
             const emailError = document.getElementById('emailError');
             const passwordError = document.getElementById('passwordError');
-            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            const confirmError = document.getElementById('passwordConfirmationError');
 
-            nameError.textContent = '';
             emailError.textContent = '';
             passwordError.textContent = '';
-            confirmPasswordError.textContent = '';
+            confirmError.textContent = '';
 
             let isValid = true;
-
-            if (!nameField.value.trim()) {
-                nameError.textContent = 'Nama wajib diisi.';
-                isValid = false;
-            }
 
             if (!emailField.value.trim()) {
                 emailError.textContent = 'Email wajib diisi.';
@@ -199,40 +185,18 @@
                 isValid = false;
             }
 
-            if (!confirmPasswordField.value) {
-                confirmPasswordError.textContent = 'Konfirmasi password wajib diisi.';
+            if (!confirmField.value) {
+                confirmError.textContent = 'Konfirmasi password wajib diisi.';
                 isValid = false;
-            } else if (passwordField.value !== confirmPasswordField.value) {
-                confirmPasswordError.textContent = 'Password dan konfirmasi password tidak cocok.';
+            } else if (confirmField.value !== passwordField.value) {
+                confirmError.textContent = 'Konfirmasi password tidak cocok.';
                 isValid = false;
             }
 
             if (!isValid) {
-                return;
+                e.preventDefault();
             }
-
-            const name = document.getElementById('nameInput').value;
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ name: name, email: email, password: password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert('Registrasi Berhasil! Silakan login.');
-                window.location.href = '/login';
-            } else {
-                alert('Error: ' + data.message);
-            }
-        }
+        });
     </script>
 </body>
 </html>

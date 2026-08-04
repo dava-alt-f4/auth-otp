@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
@@ -27,7 +28,7 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:8',
         ]);
 
         User::create([
@@ -37,6 +38,26 @@ class AuthController extends Controller
         ]);
 
         return response()->json(['message' => 'User registered successfully'], 201);
+    }
+    public function loginWithPassword(Request $request) {
+        $credentials = $request->validate([
+            'email'=> 'required|email',
+            'password'=> 'required',
+        ]);
+
+        if (!Auth::attempt($credentials)) {
+            return response()->json(['message'=> 'Invalid credentials'], 401);
+        }
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message'=> 'Login successfully',
+            'access_token'=> $token,
+            ], 200);
     }
 
     public function login(Request $request) {
@@ -52,9 +73,7 @@ class AuthController extends Controller
 
         $this->generateAndSendOtp($user);
 
-        session(['temp_email' => $user->email]);
-
-        return response()->json(['message'=> 'OTP has been delivered', 'email' => session('temp_email')], 200);
+        return response()->json(['message'=> 'OTP has been delivered'], 200);
     }
 
         public function verifyOtp(Request $request) {
@@ -81,7 +100,6 @@ class AuthController extends Controller
 
         if ($cachedOtp && $cachedOtp == $request->otp_code) {
             Cache::forget($cacheKey);
-            session()->forget('temp_email');
 
             Auth::login($user);
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -94,6 +112,15 @@ class AuthController extends Controller
         } else {
             return response()->json(['message' => 'Invalid or expired OTP'], 400);
         }
+    }
+
+    public function forgotPassword(Request $request) {
+        $request->validate(['email' => 'required|email']);
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::ResetLinkSent
+        ? back()->with(['status' => __($status)])
+        : back()->withErrors(['email' => __($status)]);
     }
 
     public function logout(Request $request) {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Login Page</title>
+    <title>Forgot Password</title>
     <style>
         :root {
             --bg: #f5f5f5;
@@ -117,70 +117,47 @@
 </head>
 <body>
     <div class="auth-container">
-        <h1>Login</h1>
-        <p class="auth-subtitle">Masuk menggunakan email terdaftar untuk menerima kode OTP.</p>
+        <h1>Lupa Password</h1>
+        <p class="auth-subtitle">Masukkan email Anda, kami akan mengirimkan link untuk reset password.</p>
 
-        <div class="form-group">
-            <label for="emailInput">Email</label>
-            <input type="email" id="emailInput" placeholder="nama@email.com" required>
-            <p class="error-text" id="emailError"></p>
-        </div>
+        <form action="/forgot-password" method="POST" id="forgotPasswordForm" novalidate>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" required name="email" id="email" placeholder="nama@email.com">
+                <p class="error-text" id="emailError"></p>
+            </div>
 
-        <button type="button" class="btn-primary" onclick="prosesLogin()">Kirim OTP</button>
+            <button type="submit" class="btn-primary">Reset</button>
+        </form>
 
         <div class="auth-footer">
-            Login dengan password? <a href="/passwordLogin">Klik di sini</a><br>
-            Belum punya akun? <a href="/register">Daftar di sini</a>
+            Ingat password Anda? <a href="/login">Kembali ke login</a>
         </div>
     </div>
 
     <script>
-        const token = localStorage.getItem('api_token');
-        if (token) {
-            window.location.href = '/dashboard';
-        }
-
         function isValidEmail(value) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         }
 
-        async function prosesLogin() {
-            const emailInput = document.getElementById('emailInput');
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function (e) {
+            const emailField = document.getElementById('email');
             const emailError = document.getElementById('emailError');
 
             emailError.textContent = '';
 
-            if (!emailInput.value.trim()) {
+            if (!emailField.value.trim()) {
                 emailError.textContent = 'Email wajib diisi.';
+                e.preventDefault();
                 return;
             }
 
-            if (!isValidEmail(emailInput.value.trim())) {
+            if (!isValidEmail(emailField.value.trim())) {
                 emailError.textContent = 'Format email tidak valid.';
+                e.preventDefault();
                 return;
             }
-
-            const email = document.getElementById('emailInput').value;
-
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ email: email })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem('temp_email', email);
-
-                window.location.href = '/verify-otp';
-            } else {
-                alert('Error: ' + data.message);
-            }
-        }
+        });
     </script>
 </body>
 </html>
