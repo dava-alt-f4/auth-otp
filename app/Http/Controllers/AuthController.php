@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 
@@ -43,9 +44,24 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email'=> 'required|email',
             'password'=> 'required',
+            'g-recaptcha-response' => 'required'
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => env('RECAPTCHA_SECRET_KEY'),
+            'response' => $request->input('g-recaptcha-response'),
+            'remoteip' => $request->ip()
+        ]);
+
+        $googleResult = $response->json();
+
+        if (!$googleResult['success']) {
+            return response()->json([
+                'message' => 'Verifikasi Captcha gagal atau kadaluwarsa, silakan coba lagi.'
+            ], 422);
+        }
+
+        if (!Auth::attempt($request->only('email','password'))) {
             return response()->json(['message'=> 'Invalid credentials'], 401);
         }
 

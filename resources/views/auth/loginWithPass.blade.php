@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Login Page</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         :root {
             --bg: #f5f5f5;
@@ -130,8 +131,9 @@
             <label for="passwordInput">Password</label>
             <input type="password" id="passwordInput" placeholder="password" required>
             <p class="error-text" id="passwordError"></p>
+            <a href="/forgot-password" style="font-size: small">Lupa password?</a>
         </div>
-
+        <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div><br>
         <button type="button" class="btn-primary" onclick="prosesLogin()">Login</button>
 
         <div class="auth-footer">
@@ -155,7 +157,12 @@
             const emailError = document.getElementById('emailError');
             const passwordInput = document.getElementById('passwordInput');
             const passwordError = document.getElementById('passwordError');
+            const captchaResponse = grecaptcha.getResponse();
 
+            if (!captchaResponse) {
+                alert('Tolong centang captcha terlebih dahulu!');
+                return;
+            }
 
             emailError.textContent = '';
             passwordError.textContent = '';
@@ -175,8 +182,9 @@
                 return;
             }
 
-            if (passwordInput.value.length < 6) {
-                passwordError.textContent = 'Password minimal 6 karakter.'
+            if (passwordInput.value.length < 8) {
+                passwordError.textContent = 'Password minimal 8 karakter.';
+                return;
             }
 
             const email = document.getElementById('emailInput').value;
@@ -188,7 +196,7 @@
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ email: email, password: password })
+                body: JSON.stringify({ email: email, password: password, 'g-recaptcha-response': captchaResponse })
             });
 
             const data = await response.json();
@@ -199,6 +207,7 @@
                 window.location.href = '/dashboard';
             } else {
                 alert('Error: ' + data.message);
+                grecaptcha.reset();
             }
         }
     </script>

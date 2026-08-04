@@ -3,7 +3,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix("auth")->group(function () {
+Route::middleware('throttle:api')->prefix("auth")->group(function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('passwordLogin', [AuthController::class,'loginWithPassword']);
     Route::post('register', [AuthController::class, 'register']);
