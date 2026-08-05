@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -115,12 +116,25 @@
         }
     </style>
 </head>
+
 <body>
     <div class="auth-container">
         <h1>Lupa Password</h1>
         <p class="auth-subtitle">Masukkan email Anda, kami akan mengirimkan link untuk reset password.</p>
 
-        <form action="/forgot-password" method="POST" id="forgotPasswordForm" novalidate>
+        <form action="/forgot-password" method="POST" id="forgotPasswordForm">
+            @csrf
+            @if (session('status'))
+                <div class="alert alert-success" style="color: green; font-size: smaller;">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @error('email')
+                <div class="alert alert-danger" style="color: red; font-size: smaller;">
+                    {{ $message }}
+                </div>
+            @enderror
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" required name="email" id="email" placeholder="nama@email.com">
@@ -140,7 +154,7 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         }
 
-        document.getElementById('forgotPasswordForm').addEventListener('submit', function (e) {
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
             const emailField = document.getElementById('email');
             const emailError = document.getElementById('emailError');
 
@@ -160,4 +174,5 @@
         });
     </script>
 </body>
+
 </html>

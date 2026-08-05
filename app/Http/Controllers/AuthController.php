@@ -142,4 +142,10 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Invalid or expired OTP'], 400);
     }
+
+    public function logout(Request $request) {
+        $request->user()->tokens()->delete();
+
+        return response()->json(['message' => 'User logged out successfully'], 200);
+    }
 }

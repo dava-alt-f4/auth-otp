@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Login Page</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <style>
         :root {
             --bg: #f5f5f5;
@@ -115,9 +116,60 @@
             color: var(--text);
             font-weight: 500;
         }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            background-color: #4CAF50;
+            font-size: 14px;
+            z-index: 1000;
+            color: whitesmoke;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(110%);
+            opacity: 0;
+            transition: transform 0.35s ease-in-out, opacity 0.35s ease-in-out;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.hide {
+            transform: translateX(110%);
+            opacity: 0;
+        }
+
+        .toast p {
+            margin: 0;
+            padding-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .toast-text {
+            display: block;
+            font-size: 13px;
+            line-height: 1.4;
+            color: whitesmoke;
+        }
     </style>
 </head>
 <body>
+        <div class="toast toast-success" id="toastSuccess">
+            <div class="icon">
+                <i data-feather="check-circle"></i>
+            </div>
+            <div class="content">
+                <p>SUCCESS</p>
+                <span class="toast-text">{{ session('status') }}</span>
+            </div>
+        </div>
+
     <div class="auth-container">
         <h1>Login</h1>
         <p class="auth-subtitle">Masuk menggunakan password Anda.</p>
@@ -135,7 +187,7 @@
             <p class="error-text" id="passwordError"></p>
             <a href="/forgot-password" style="font-size: small">Lupa password?</a>
         </div>
-            
+        <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div><br>
         <button type="button" class="btn-primary" onclick="prosesLogin()">Login</button>
 
         <div class="auth-footer">
@@ -143,6 +195,10 @@
             Belum punya akun? <a href="/register">Daftar di sini</a>
         </div>
     </div>
+
+    <script>
+      feather.replace();
+    </script>
 
     <script>
         const token = localStorage.getItem('api_token');
@@ -153,6 +209,17 @@
         function isValidEmail(value) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         }
+
+        // Toast status
+        const toastSuccess = document.getElementById('toastSuccess');
+
+        @if (session('status'))
+            toastSuccess.querySelector('.content p').textContent = 'SUCCESS';
+            toastSuccess.classList.add('show');
+            setTimeout(() => {
+                toastSuccess.classList.remove('show');
+            }, 3200);
+        @endif
 
         async function prosesLogin() {
             const emailInput = document.getElementById('emailInput');

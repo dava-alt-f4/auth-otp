@@ -121,22 +121,36 @@
         <p class="auth-subtitle">Buat password baru untuk akun Anda.</p>
 
         <form action="/reset-password" method="POST" id="resetPasswordForm" novalidate>
+            @csrf
+
+            @if (session('status'))
+                <div class="alert alert-success" style="color: green; font-size: smaller; margin-bottom: 14px;">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger" style="color: red; font-size: smaller; margin-bottom: 14px;">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" placeholder="email">
-                <p class="error-text" id="emailError"></p>
+                <p class="error-text" id="emailError">@error('email'){{ $message }}@enderror</p>
             </div>
 
             <div class="form-group">
                 <label for="password">Password Baru</label>
                 <input type="password" id="password" name="password" placeholder="new password">
-                <p class="error-text" id="passwordError"></p>
+                <p class="error-text" id="passwordError">@error('password'){{ $message }}@enderror</p>
             </div>
 
             <div class="form-group">
                 <label for="password_confirmation">Konfirmasi Password</label>
                 <input type="password" id="password_confirmation" name="password_confirmation" placeholder="confirm new password">
-                <p class="error-text" id="passwordConfirmationError"></p>
+                <p class="error-text" id="passwordConfirmationError">@error('password_confirmation'){{ $message }}@enderror</p>
             </div>
 
             <input type="hidden" name="token" value="{{ $token }}">
