@@ -180,7 +180,7 @@
 
                 if (response.ok) {
                     localStorage.setItem('temp_email', email);
-                    window.location.href = '/verify-otp';
+                    window.location.href = '/verify-otp/' + data.hash;
                     return;
                 }
 

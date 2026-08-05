@@ -3,6 +3,7 @@
 use App\Http\Controllers\ResetPasswordController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -27,9 +28,12 @@ Route::get('/passwordLogin', function () {
     return view('auth.loginWithPass');
 })->name('passwordLogin');
 
-Route::get('/verify-otp', function () {
+Route::get('/verify-otp/{hash}', function (string $hash) {
+    if (!Cache::has('otp_hash_' . $hash)) {
+        abort(419);
+    }
     return view('auth.otp');
-})->name('verify.otp');
+})->name('verify.otp')->where('hash', '[A-Fa-f0-9]{64}');
 
 
 // Dashboard

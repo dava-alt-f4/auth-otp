@@ -135,7 +135,7 @@
             <p class="error-text" id="passwordError"></p>
             <a href="/forgot-password" style="font-size: small">Lupa password?</a>
         </div>
-        <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div><br>
+            
         <button type="button" class="btn-primary" onclick="prosesLogin()">Login</button>
 
         <div class="auth-footer">

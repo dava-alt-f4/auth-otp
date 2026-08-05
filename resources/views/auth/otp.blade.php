@@ -145,6 +145,11 @@
             window.location.href = '/dashboard';
         }
 
+        function getHashFromUrl() {
+            const path = window.location.pathname.split('/');
+            return path[path.length - 1];
+        }
+
         async function prosesVerifikasi() {
             const otpField = document.getElementById('otpInput');
             const otpError = document.getElementById('otpError');
@@ -165,10 +170,16 @@
 
             const email = localStorage.getItem('temp_email');
             const otpCode = otpField.value.trim();
+            const hash = getHashFromUrl();
 
             if (!email) {
                 formError.textContent = 'Sesi habis, silakan login ulang.';
                 setTimeout(() => window.location.href = '/login', 1200);
+                return;
+            }
+
+            if (!hash || hash.length !== 64) {
+                formError.textContent = 'Akses OTP tidak valid.';
                 return;
             }
 
@@ -181,7 +192,8 @@
                     },
                     body: JSON.stringify({
                         email: email,
-                        otp_code: otpCode
+                        otp_code: otpCode,
+                        hash: hash
                     })
                 });
 

@@ -15,14 +15,23 @@ use Illuminate\Support\Facades\Password;
 class AuthController extends Controller
 {
 
-    private function generateAndSendOtp($user) {
-        $otp = rand(100000, 999999);
+    private function otpHash(string $email): string
+    {
+        return hash_hmac('sha256', $email, config('app.key'));
+    }
 
+    private function generateAndSendOtp($user)
+    {
+        $otp = rand(100000, 999999);
         $cacheKey = 'otp_' . $user->email;
+        $hash = $this->otpHash($user->email);
 
         Cache::put($cacheKey, Hash::make($otp), now()->addMinutes(1));
+        Cache::put('otp_hash_' . $hash, $user->email, now()->addMinutes(5));
 
         Mail::to($user->email)->send(new SendOtpMail($otp));
+
+        return $hash;
     }
 
     public function register(Request $request) {
@@ -87,28 +96,31 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email not found'], 404);
         }
 
-        $this->generateAndSendOtp($user);
+        $hash = $this->generateAndSendOtp($user);
 
-        return response()->json(['message'=> 'OTP has been delivered'], 200);
+        return response()->json(['message' => 'OTP has been delivered', 'hash' => $hash], 200);
     }
 
-        public function verifyOtp(Request $request) {
+    public function verifyOtp(Request $request) {
 
         $request->validate([
             'email' => 'required|email',
-            'otp_code' => 'required|string|digits:6'
+            'otp_code' => 'required|string|digits:6',
+            'hash' => 'required|string|size:64'
         ]);
+
         $email = $request->email;
+        $hash = $request->hash;
+
+        $cachedEmail = Cache::get('otp_hash_' . $hash);
+        if (!$cachedEmail || $cachedEmail !== $email) {
+            return response()->json(['message' => 'Invalid or expired OTP access'], 404);
+        }
 
         $user = User::where('email', $email)->first();
 
-
         if (!$user) {
             return response()->json(['message' => 'Email not found'], 404);
-        }
-
-        if (!$email) {
-            return redirect()->route('login')->withErrors(['otp_code' => 'No email found in session. Please login again.']);
         }
 
         $cacheKey = 'otp_' . $email;
@@ -116,6 +128,7 @@ class AuthController extends Controller
 
         if ($cachedOtp && Hash::check($request->otp_code, $cachedOtp)) {
             Cache::forget($cacheKey);
+            Cache::forget('otp_hash_' . $hash);
 
             Auth::login($user);
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -125,8 +138,8 @@ class AuthController extends Controller
                 'access_token' => $token,
                 'token_type' => 'Bearer',
             ], 200);
-        } else {
-            return response()->json(['message' => 'Invalid or expired OTP'], 400);
         }
+
+        return response()->json(['message' => 'Invalid or expired OTP'], 400);
     }
 }
