@@ -85,6 +85,7 @@
             font-size: 12px;
             color: var(--error);
             min-height: 14px;
+            font-weight: 500;
         }
 
         .btn-primary {
@@ -120,6 +121,7 @@
     <div class="auth-container">
         <h1>Login</h1>
         <p class="auth-subtitle">Masuk menggunakan password Anda.</p>
+        <p class="error-text" style="font-size: smaller; font-weight:600;" id="formError"></p>
 
         <div class="form-group">
             <label for="emailInput">Email</label>
@@ -157,15 +159,17 @@
             const emailError = document.getElementById('emailError');
             const passwordInput = document.getElementById('passwordInput');
             const passwordError = document.getElementById('passwordError');
+            const formError = document.getElementById('formError');
             const captchaResponse = grecaptcha.getResponse();
 
             if (!captchaResponse) {
-                alert('Tolong centang captcha terlebih dahulu!');
+                formError.textContent = 'Tolong centang captcha terlebih dahulu!';
                 return;
             }
 
             emailError.textContent = '';
             passwordError.textContent = '';
+            formError.textContent = '';
 
             if (!emailInput.value.trim()) {
                 emailError.textContent = 'Email wajib diisi.';
@@ -187,26 +191,42 @@
                 return;
             }
 
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-            const response = await fetch('/api/auth/passwordLogin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ email: email, password: password, 'g-recaptcha-response': captchaResponse })
-            });
+            try {
+                const response = await fetch('/api/auth/passwordLogin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email, password: password, 'g-recaptcha-response': captchaResponse })
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (response.ok) {
-                localStorage.setItem('api_token', data.access_token);
+                if (response.ok) {
+                    localStorage.setItem('api_token', data.access_token);
+                    window.location.href = '/dashboard';
+                    return;
+                }
 
-                window.location.href = '/dashboard';
-            } else {
-                alert('Error: ' + data.message);
+                if (data.errors?.email) {
+                    emailError.textContent = data.errors.email[0];
+                }
+
+                if (data.errors?.password) {
+                    passwordError.textContent = data.errors.password[0];
+                }
+
+                if (!formError.textContent) {
+                    formError.textContent = data.message || 'Terjadi kesalahan saat login.';
+                }
+
+                grecaptcha.reset();
+            } catch (error) {
+                formError.textContent = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
                 grecaptcha.reset();
             }
         }

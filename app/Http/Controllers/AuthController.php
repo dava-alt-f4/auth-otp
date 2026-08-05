@@ -20,7 +20,7 @@ class AuthController extends Controller
 
         $cacheKey = 'otp_' . $user->email;
 
-        Cache::put($cacheKey, [Hash::make($otp)], now()->addMinutes(1));
+        Cache::put($cacheKey, Hash::make($otp), now()->addMinutes(1));
 
         Mail::to($user->email)->send(new SendOtpMail($otp));
     }
@@ -41,7 +41,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'User registered successfully'], 201);
     }
     public function loginWithPassword(Request $request) {
-        $credentials = $request->validate([
+        $request->validate([
             'email'=> 'required|email',
             'password'=> 'required',
             'g-recaptcha-response' => 'required'
@@ -114,7 +114,7 @@ class AuthController extends Controller
         $cacheKey = 'otp_' . $email;
         $cachedOtp = Cache::get($cacheKey);
 
-        if ($cachedOtp && $cachedOtp == $request->otp_code) {
+        if ($cachedOtp && Hash::check($request->otp_code, $cachedOtp)) {
             Cache::forget($cacheKey);
 
             Auth::login($user);
@@ -128,20 +128,5 @@ class AuthController extends Controller
         } else {
             return response()->json(['message' => 'Invalid or expired OTP'], 400);
         }
-    }
-
-    public function forgotPassword(Request $request) {
-        $request->validate(['email' => 'required|email']);
-        $status = Password::sendResetLink($request->only('email'));
-
-        return $status === Password::ResetLinkSent
-        ? back()->with(['status' => __($status)])
-        : back()->withErrors(['email' => __($status)]);
-    }
-
-    public function logout(Request $request) {
-        $request->user()->tokens()->delete();
-
-        return response()->json(['message' => 'User logged out successfully'], 200);
     }
 }

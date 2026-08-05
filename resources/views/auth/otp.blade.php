@@ -86,6 +86,7 @@
             font-size: 12px;
             color: var(--error);
             min-height: 14px;
+            font-weight: 500;
         }
 
         .btn-primary {
@@ -126,6 +127,7 @@
     <div class="auth-container">
         <h1>Verifikasi OTP</h1>
         <p class="auth-subtitle">Masukkan 6 digit kode OTP yang telah dikirim ke email Anda.</p>
+        <p class="error-text" style="font-size: smaller; font-weight:600;" id="formError"></p>
 
         <div class="form-group">
             <label for="otpInput">Kode OTP</label>
@@ -146,8 +148,10 @@
         async function prosesVerifikasi() {
             const otpField = document.getElementById('otpInput');
             const otpError = document.getElementById('otpError');
+            const formError = document.getElementById('formError');
 
             otpError.textContent = '';
+            formError.textContent = '';
 
             if (!otpField.value.trim()) {
                 otpError.textContent = 'Kode OTP wajib diisi.';
@@ -160,36 +164,44 @@
             }
 
             const email = localStorage.getItem('temp_email');
-            const otpCode = document.getElementById('otpInput').value;
+            const otpCode = otpField.value.trim();
 
             if (!email) {
-                alert('Sesi habis, silakan login ulang.');
-                window.location.href = '/login';
+                formError.textContent = 'Sesi habis, silakan login ulang.';
+                setTimeout(() => window.location.href = '/login', 1200);
                 return;
             }
 
-            const response = await fetch('/api/auth/verify-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: email,
-                    otp_code: otpCode
-                })
-            });
+            try {
+                const response = await fetch('/api/auth/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        otp_code: otpCode
+                    })
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (response.ok) {
-                localStorage.setItem('api_token', data.access_token);
-                localStorage.removeItem('temp_email');
+                if (response.ok) {
+                    localStorage.setItem('api_token', data.access_token);
+                    localStorage.removeItem('temp_email');
+                    window.location.href = '/dashboard';
+                    return;
+                }
 
-                alert('Login Berhasil!');
-                window.location.href = '/dashboard';
-            } else {
-                alert('Error: ' + data.message);
+                if (data.errors?.otp_code) {
+                    otpError.textContent = data.errors.otp_code[0];
+                    return;
+                }
+
+                formError.textContent = data.message || 'Kode OTP tidak valid atau sudah kadaluwarsa.';
+            } catch (error) {
+                formError.textContent = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
             }
         }
     </script>

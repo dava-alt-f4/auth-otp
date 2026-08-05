@@ -84,6 +84,7 @@
             font-size: 12px;
             color: var(--error);
             min-height: 14px;
+            font-weight: 500;
         }
 
         .btn-primary {
@@ -119,6 +120,7 @@
     <div class="auth-container">
         <h1>Login</h1>
         <p class="auth-subtitle">Masuk menggunakan email terdaftar untuk menerima kode OTP.</p>
+        <p class="error-text" style="font-size: smaller; font-weight:600;" id="formError"></p>
 
         <div class="form-group">
             <label for="emailInput">Email</label>
@@ -147,8 +149,10 @@
         async function prosesLogin() {
             const emailInput = document.getElementById('emailInput');
             const emailError = document.getElementById('emailError');
+            const formError = document.getElementById('formError');
 
             emailError.textContent = '';
+            formError.textContent = '';
 
             if (!emailInput.value.trim()) {
                 emailError.textContent = 'Email wajib diisi.';
@@ -160,25 +164,34 @@
                 return;
             }
 
-            const email = document.getElementById('emailInput').value;
+            const email = emailInput.value.trim();
 
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ email: email })
-            });
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (response.ok) {
-                localStorage.setItem('temp_email', email);
+                if (response.ok) {
+                    localStorage.setItem('temp_email', email);
+                    window.location.href = '/verify-otp';
+                    return;
+                }
 
-                window.location.href = '/verify-otp';
-            } else {
-                alert('Error: ' + data.message);
+                if (data.errors?.email) {
+                    emailError.textContent = data.errors.email[0];
+                    return;
+                }
+
+                formError.textContent = data.message || 'Terjadi kesalahan, silakan coba lagi.';
+            } catch (error) {
+                formError.textContent = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
             }
         }
     </script>

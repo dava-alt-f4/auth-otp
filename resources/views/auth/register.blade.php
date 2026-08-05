@@ -84,6 +84,7 @@
             font-size: 12px;
             color: var(--error);
             min-height: 14px;
+            font-weight: 500;
         }
 
         .btn-primary {
@@ -119,6 +120,7 @@
     <div class="auth-container">
         <h1>Register</h1>
         <p class="auth-subtitle">Buat akun baru untuk mulai menggunakan layanan.</p>
+        <p class="error-text" style="font-size: smaller; font-weight:600;" id="formError"></p>
 
         <div class="form-group">
             <label for="nameInput">Name</label>
@@ -170,11 +172,13 @@
             const emailError = document.getElementById('emailError');
             const passwordError = document.getElementById('passwordError');
             const confirmPasswordError = document.getElementById('confirmPasswordError');
+            const formError = document.getElementById('formError');
 
             nameError.textContent = '';
             emailError.textContent = '';
             passwordError.textContent = '';
             confirmPasswordError.textContent = '';
+            formError.textContent = '';
 
             let isValid = true;
 
@@ -211,26 +215,44 @@
                 return;
             }
 
-            const name = document.getElementById('nameInput').value;
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
+            const name = nameField.value.trim();
+            const email = emailField.value.trim();
+            const password = passwordField.value;
 
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ name: name, email: email, password: password })
-            });
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ name: name, email: email, password: password })
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (response.ok) {
-                alert('Registrasi Berhasil! Silakan login.');
-                window.location.href = '/login';
-            } else {
-                alert('Error: ' + data.message);
+                if (response.ok) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (data.errors?.name) {
+                    nameError.textContent = data.errors.name[0];
+                }
+
+                if (data.errors?.email) {
+                    emailError.textContent = data.errors.email[0];
+                }
+
+                if (data.errors?.password) {
+                    passwordError.textContent = data.errors.password[0];
+                }
+
+                if (!formError.textContent) {
+                    formError.textContent = data.message || 'Terjadi kesalahan saat registrasi.';
+                }
+            } catch (error) {
+                formError.textContent = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
             }
         }
     </script>
