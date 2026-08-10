@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -157,20 +158,40 @@
             line-height: 1.4;
             color: whitesmoke;
         }
+
+        .back-link {
+            display: flex;
+            gap:6px;
+            font-size:0.91rem;
+            text-decoration: none;
+            color:grey;
+            margin-bottom: 10px;
+        }
+
+        .back-link:hover {
+            color:black;
+        }
+
+        .back-link p {
+            text-decoration: underline;
+            margin:0;
+        }
     </style>
 </head>
+
 <body>
-        <div class="toast toast-success" id="toastSuccess">
-            <div class="icon">
-                <i data-feather="check-circle"></i>
-            </div>
-            <div class="content">
-                <p>SUCCESS</p>
-                <span class="toast-text">{{ session('status') }}</span>
-            </div>
+    <div class="toast toast-success" id="toastSuccess">
+        <div class="icon">
+            <i data-feather="check-circle"></i>
         </div>
+        <div class="content">
+            <p>SUCCESS</p>
+            <span class="toast-text">{{ session('status') }}</span>
+        </div>
+    </div>
 
     <div class="auth-container">
+        <a href="/dashboard" class="back-link">< <p>Dashboard</p></a>
         <h1>Login</h1>
         <p class="auth-subtitle">Masuk menggunakan password Anda.</p>
         <p class="error-text" style="font-size: smaller; font-weight:600;" id="formError"></p>
@@ -197,7 +218,7 @@
     </div>
 
     <script>
-      feather.replace();
+        feather.replace();
     </script>
 
     <script>
@@ -268,15 +289,27 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ email: email, password: password, 'g-recaptcha-response': captchaResponse })
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        'g-recaptcha-response': captchaResponse
+                    })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
                     localStorage.setItem('api_token', data.access_token);
-                    window.location.href = '/dashboard';
-                    return;
+                    localStorage.setItem('userId', data.user_id);
+                    localStorage.setItem('role', data.role);
+
+                    if (data.role === 'admin') {
+                        window.location.href = '/admin';
+                        return;
+                    } else {
+                        window.location.href = '/dashboard';
+                        return;
+                    }
                 }
 
                 if (data.errors?.email) {
@@ -299,4 +332,5 @@
         }
     </script>
 </body>
+
 </html>

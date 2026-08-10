@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Auth\Passwords\CanResetPassword;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'avatar', 'country', 'province', 'city', 'district', 'postal_code', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -31,5 +31,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function message() {
+        return $this->hasMany(Message::class);
+    }
+
+    public function conversation() {
+        return $this->hasMany(Conversation::class);
     }
 }

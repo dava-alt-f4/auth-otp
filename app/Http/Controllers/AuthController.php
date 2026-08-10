@@ -39,6 +39,11 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
+            'country' => 'nullable|string|max:255',
+            'province' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'district' => 'nullable|string|max:255',
+            'postal_code' => 'required|string|min:5|max:10',
         ], [
             'name.required' => 'Nama wajib diisi.',
             'name.string' => 'Nama harus berupa teks.',
@@ -55,6 +60,11 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'country' => $request->country,
+            'province' => $request->province,
+            'city' => $request->city,
+            'district' => $request->district,
+            'postal_code' => $request->postal_code,
         ]);
 
         return response()->json(['message' => 'Pengguna berhasil didaftarkan'], 201);
@@ -97,6 +107,8 @@ class AuthController extends Controller
         return response()->json([
             'message'=> 'Login berhasil',
             'access_token'=> $token,
+            'user_id' => $user->id,
+            'role' => $user->role,
             ], 200);
     }
 
@@ -163,6 +175,8 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'OTP berhasil diverifikasi',
                 'access_token' => $token,
+                'user_id' => $user->id,
+                'role' => $user->role,
                 'token_type' => 'Bearer',
             ], 200);
         }

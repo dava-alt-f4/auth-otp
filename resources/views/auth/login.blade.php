@@ -114,10 +114,29 @@
             color: var(--text);
             font-weight: 500;
         }
+
+        .back-link {
+            display: flex;
+            gap:6px;
+            font-size:0.91rem;
+            text-decoration: none;
+            color:grey;
+            margin-bottom: 10px;
+        }
+
+        .back-link:hover {
+            color:black;
+        }
+
+        .back-link p {
+            text-decoration: underline;
+            margin:0;
+        }
     </style>
 </head>
 <body>
     <div class="auth-container">
+        <a href="/dashboard" class="back-link">< <p>Dashboard</p></a>
         <h1>Login</h1>
         <p class="auth-subtitle">Masuk menggunakan email terdaftar untuk menerima kode OTP.</p>
         <p class="error-text" style="font-size: smaller; font-weight:600;" id="formError"></p>

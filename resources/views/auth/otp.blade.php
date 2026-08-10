@@ -201,9 +201,17 @@
 
                 if (response.ok) {
                     localStorage.setItem('api_token', data.access_token);
+                    localStorage.setItem('userId', data.user_id)
                     localStorage.removeItem('temp_email');
-                    window.location.href = '/dashboard';
-                    return;
+                    localStorage.setItem('role', data.role);
+
+                    if (data.role === 'admin') {
+                        window.location.href = '/admin';
+                        return;
+                    } else {
+                        window.location.href = '/dashboard';
+                        return;
+                    }
                 }
 
                 if (data.errors?.otp_code) {

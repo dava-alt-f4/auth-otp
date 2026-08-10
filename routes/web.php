@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -36,11 +37,21 @@ Route::get('/verify-otp/{hash}', function (string $hash) {
 })->name('verify.otp')->where('hash', '[A-Fa-f0-9]{64}');
 
 
-// Dashboard
+// Users
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
+Route::get('/profile/{id}', function (string $id) {
+    return view('profile', ['userId' => $id]);
+})->name('profile');
+
+// Admin
+Route::prefix('admin')->group(function () {
+    Route::get('/', [UserController::class, 'users'])->name('admin.index');
+    Route::get('/create', [UserController::class, 'create'])->name('admin.create');
+    Route::get('/edit/{id}', [UserController::class, 'edit'])->name('admin.edit');
+});
 // Reset Password
 
 Route::get('/forgot-password', function () {
@@ -54,3 +65,13 @@ Route::get('/reset-password/{token}', function (string $token) {
 })->middleware('guest')->name('password.reset');
 
 Route::post('/reset-password',[ResetPasswordController::class, 'resetPassword'] )->name('password.update');
+
+// Chat
+Route::get('/chat', function () {
+    return view('chat');
+})->name('chat.index');
+
+// Chat, Admin edition
+Route::get('/admin/inbox', function () {
+    return view('admin.inbox');
+})->name('admin.inbox');
