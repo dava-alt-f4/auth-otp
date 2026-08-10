@@ -1,3 +1,3 @@
-<h1>Your OTP Code</h1>
+<h1>Kode OTP Anda</h1>
 
-<p>Your OTP code is: <strong>{{ $otpCode }}</strong></p>
+<p>Kode OTP Anda adalah: <strong>{{ $otpCode }}</strong></p>

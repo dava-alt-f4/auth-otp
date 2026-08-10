@@ -30,7 +30,7 @@ class SendOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'View your OTP code',
+            subject: 'Kode OTP Anda',
         );
     }
 

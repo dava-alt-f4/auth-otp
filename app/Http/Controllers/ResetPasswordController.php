@@ -11,16 +11,32 @@ use Illuminate\Auth\Events\PasswordReset;
 
 class ResetPasswordController extends Controller
 {
+    private function translateStatus($status) {
+        return match($status) {
+            Password::RESET_LINK_SENT => 'Tautan reset password telah dikirim ke email Anda.',
+            Password::PASSWORD_RESET => 'Password berhasil direset.',
+            Password::INVALID_USER => 'Email tidak ditemukan.',
+            Password::INVALID_TOKEN => 'Token reset password tidak valid atau sudah kedaluwarsa.',
+            'passwords.throttled' => 'Harap tunggu sebelum mencoba lagi.',
+            default => 'Terjadi kesalahan.'
+        };
+    }
+
     public function sendResetUrl(Request $request) {
-        $request->validate(['email' => 'required|email']);
+        $request->validate([
+            'email' => 'required|email'
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.'
+        ]);
 
         $status = Password::sendResetLink(
             $request->only('email')
         );
 
-    return $status === Password::ResetLinkSent
-        ? back()->with(['status' => __($status)])
-        : back()->withErrors(['email' => __($status)]);
+    return $status === Password::RESET_LINK_SENT
+        ? back()->with(['status' => $this->translateStatus($status)])
+        : back()->withErrors(['email' => $this->translateStatus($status)]);
     }
 
     public function resetPassword(Request $request) {
@@ -28,6 +44,13 @@ class ResetPasswordController extends Controller
         'token' => 'required',
         'email' => 'required|email',
         'password' => 'required|min:8|confirmed',
+    ], [
+        'token.required' => 'Token wajib diisi.',
+        'email.required' => 'Email wajib diisi.',
+        'email.email' => 'Format email tidak valid.',
+        'password.required' => 'Password wajib diisi.',
+        'password.min' => 'Password minimal 8 karakter.',
+        'password.confirmed' => 'Konfirmasi password tidak cocok.'
     ]);
 
     $status = Password::reset(
@@ -43,9 +66,9 @@ class ResetPasswordController extends Controller
         }
     );
 
-    return $status === Password::PasswordReset
-        ? redirect()->route('passwordLogin')->with('status', __($status))
-        : back()->withErrors(['email' => [__($status)]]);
+    return $status === Password::PASSWORD_RESET
+        ? redirect()->route('passwordLogin')->with('status', $this->translateStatus($status))
+        : back()->withErrors(['email' => [$this->translateStatus($status)]]);
 
     }
 }
