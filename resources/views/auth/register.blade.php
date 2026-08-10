@@ -136,7 +136,7 @@
 
         <div class="form-group">
             <label for="passwordInput">Password</label>
-            <input type="password" id="passwordInput" placeholder="Minimal 6 karakter" required>
+            <input type="password" id="passwordInput" placeholder="Minimal 8 karakter" required>
             <p class="error-text" id="passwordError"></p>
         </div>
 
